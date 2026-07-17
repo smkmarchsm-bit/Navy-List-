@@ -388,8 +388,7 @@ function normBranch(b){
   const s = words.join(' ').trim();
   const key = s.toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1{2,}/g, '$1$1');
   if(key === 'executive') return 'Executive';
-  if(key === 'engineering') return doubled ? 'Marine Engineering' : 'Engineering';
-  if(key === 'marineengineering') return 'Marine Engineering';
+  if(key === 'engineering' || key === 'marineengineering') return 'Marine Engineering';
   if(key === 'shipwright') return 'Ship Wright';
   return s;
 }
