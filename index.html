@@ -434,7 +434,18 @@ const cache = {
     }catch(e){}
   }
 };
-cache.open();
+(async () => {
+  await cache.open();
+  try{
+    const lastKey = await cache.get('__last_key__');
+    if(lastKey){
+      const list = await cache.get(lastKey);
+      if(list && list.length){
+        finishLoad(String(lastKey).split('|')[0] || 'Saved Navy List', list, true);
+      }
+    }
+  }catch(e){}
+})();
 
 /* ------------------------------ load ------------------------------ */
 $('openBtn').onclick = () => $('fileInput').click();
@@ -444,7 +455,7 @@ $('fileInput').onchange = async e => {
   const key = file.name + '|' + file.size + '|' + file.lastModified;
   $('fileState').innerHTML = 'Loading <b>' + file.name + '</b> …';
   const cached = await cache.get(key);
-  if(cached && cached.length){ finishLoad(file.name, cached, true); return; }
+  if(cached && cached.length){ cache.set('__last_key__', key); finishLoad(file.name, cached, true); return; }
 
   $('progressWrap').style.display = 'block';
   try{
@@ -471,6 +482,7 @@ $('fileInput').onchange = async e => {
     }
     const list = Object.values(best);
     cache.set(key, list);
+    cache.set('__last_key__', key);
     finishLoad(file.name, list, false);
   }catch(err){
     $('progressWrap').style.display = 'none';
@@ -483,7 +495,7 @@ function finishLoad(name, list, fromCache){
   list.forEach(normalizeOfficer);
   officers = list;
   $('progressWrap').style.display = 'none';
-  $('fileState').innerHTML = '<b>' + name + '</b> · ' + list.length + ' officers' + (fromCache ? ' (instant — saved on this phone)' : '');
+  $('fileState').innerHTML = '<b>' + name + '</b> · ' + list.length + ' officers' + (fromCache ? ' (saved on this phone)' : '');
   $('searchPanel').style.display = 'block';
   $('resultBar').style.display = 'flex';
   $('loadWrap').firstElementChild.textContent = 'Open a different Navy List PDF';
@@ -583,7 +595,7 @@ function showDetail(o){
 $('sheetBg').onclick = () => { $('sheetBg').style.display = 'none'; $('sheet').style.display = 'none'; };
 $('aboutBtn').onclick = () => {
   $('dName').textContent = '\u2693 SLN Navy List';
-  $('dSub').textContent = "Officers' Seniority List Search \u00b7 Version 1.1";
+  $('dSub').textContent = "Officers' Seniority List Search \u00b7 Version 1.2";
   $('dRows').innerHTML =
     '<div style="text-align:center;padding:10px 0 4px;color:var(--gold-soft);font-weight:700;font-size:13.5px">\u00a9 Sri Lanka Navy (SLN). All rights reserved.</div>' +
     '<div style="text-align:center;padding:4px 0 12px;color:#fff;font-size:13.5px;line-height:1.6">Designed and developed by<br>Cdr SMSM Karunarathne, NRX 2242, SLN</div>';
