@@ -507,6 +507,16 @@ function finishLoad(name, list, fromCache){
 }
 
 /* ----------------------------- search ----------------------------- */
+const MON_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function birthdayToday(){
+  const now = new Date();
+  const day = String(now.getDate()), mon = MON_ABBR[now.getMonth()];
+  const res = officers.filter(o => {
+    const p = (o.dob || '').split(' ');
+    return p.length >= 2 && p[0].replace(/^0/,'') === day && p[1] === mon;
+  });
+  return [res, now.getDate() + ' ' + mon];
+}
 function runSearch(){
   const off = $('fOff').value.trim().toUpperCase();
   const sur = $('fSur').value.trim().toUpperCase();
@@ -514,6 +524,19 @@ function runSearch(){
   const itk = $('fInt').value.trim().toLowerCase().replace(/\s+/g,'');
   const ret = $('fRet').value.trim();
   const retm = $('fRetM').value;
+  if(!off && !sur && !br && !itk && !ret && !retm){
+    const [bd, today] = birthdayToday();
+    results = bd;
+    shown = 0;
+    $('results').innerHTML = '';
+    renderMore();
+    $('countTxt').textContent = '\uD83C\uDF82 ' + (bd.length ? bd.length + (bd.length === 1 ? ' officer celebrating a birthday today (' : ' officers celebrating birthdays today (') + today + ')' : 'No birthdays today (' + today + ')');
+    if(!bd.length){
+      $('results').innerHTML = '<div class="empty"><div class="anch">\uD83C\uDF82</div>No officers celebrate birthdays today (' + today + ').<br>Use the search fields above to find officers.</div>';
+    }
+    document.activeElement && document.activeElement.blur();
+    return;
+  }
   results = officers.filter(o => {
     if(off && o.off_no.toUpperCase().indexOf(off) < 0) return false;
     if(sur && (o.surname||'').toUpperCase().indexOf(sur) < 0
@@ -595,7 +618,7 @@ function showDetail(o){
 $('sheetBg').onclick = () => { $('sheetBg').style.display = 'none'; $('sheet').style.display = 'none'; };
 $('aboutBtn').onclick = () => {
   $('dName').textContent = '\u2693 SLN Navy List';
-  $('dSub').textContent = "Officers' Seniority List Search \u00b7 Version 1.2";
+  $('dSub').textContent = "Officers' Seniority List Search \u00b7 Version 1.3";
   $('dRows').innerHTML =
     '<div style="text-align:center;padding:10px 0 4px;color:var(--gold-soft);font-weight:700;font-size:13.5px">\u00a9 Sri Lanka Navy (SLN). All rights reserved.</div>' +
     '<div style="text-align:center;padding:4px 0 12px;color:#fff;font-size:13.5px;line-height:1.6">Designed and developed by<br>Cdr SMSM Karunarathne, NRX 2242, SLN</div>';
